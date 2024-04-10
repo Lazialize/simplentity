@@ -4,13 +4,21 @@
   "type": "module",
   "scripts": {
     "check": "biome check ./src",
-    "check:apply": "biome check ./src --apply"
+    "check:apply": "biome check ./src --apply",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "biome check --apply"
+    ]
   }
 }
