@@ -2,7 +2,12 @@
   "name": "simplentity",
   "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "check": "biome check ./src",
+    "check:apply": "biome check ./src --apply"
+  },
   "devDependencies": {
+    "@biomejs/biome": "1.6.4",
     "@types/bun": "latest"
   },
   "peerDependencies": {
