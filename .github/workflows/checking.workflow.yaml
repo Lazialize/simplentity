@@ -3,7 +3,7 @@ name: Testing Workflow
 on:
   workflow_dispatch:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
 
 jobs:
   test:
@@ -13,7 +13,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Setup Bun
-      uses: bun-actions/setup@v1
+      uses: oven-sh/setup-bun@v1
       with:
         version: 1.1.3
 
