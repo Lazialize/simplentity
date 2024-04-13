@@ -13,14 +13,8 @@ type StringField = Field & { type: "string" };
 type NumberField = Field & { type: "number" };
 type BooleanField = Field & { type: "boolean" };
 
-export const string = (): StringField => {
-  return { type: "string" };
-};
+export const string = (): StringField => ({ type: "string" });
 
-export const number = (): NumberField => {
-  return { type: "number" };
-};
+export const number = (): NumberField => ({ type: "number" });
 
-export const boolean = (): BooleanField => {
-  return { type: "boolean" };
-};
+export const boolean = (): BooleanField => ({ type: "boolean" });
