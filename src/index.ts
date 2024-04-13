@@ -1,1 +1,3 @@
-console.log("Hello via Bun!");
+import { entity } from "./entity.ts";
+
+export { entity };
