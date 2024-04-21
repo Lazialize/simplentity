@@ -1,8 +1,10 @@
-import { describe, expect, it } from "bun:test";
+import { beforeAll, describe, expect, it, setSystemTime } from "bun:test";
 import { boolean, date, entity, number, string } from "../src";
 
 describe("Entity", () => {
-  const now = new Date();
+  beforeAll(() => {
+    setSystemTime(new Date("2024-01-01T00:00:00.000Z"));
+  });
 
   class Account extends entity({
     id: number(),
@@ -10,7 +12,7 @@ describe("Entity", () => {
     isActive: boolean(),
     email: string().notRequired(),
     level: number().default(1),
-    createdAt: date().default(now),
+    createdAt: date().defaultFn(() => new Date()),
   }) {
     activate() {
       this.set("isActive", true);
@@ -104,7 +106,7 @@ describe("Entity", () => {
     });
 
     expect(JSON.stringify(instance)).toBe(
-      `{"id":1,"name":"testName","isActive":true,"level":1,"createdAt":"${now.toJSON()}"}`,
+      `{"id":1,"name":"testName","isActive":true,"level":1,"createdAt":"2024-01-01T00:00:00.000Z"}`,
     );
     expect(instance.toJSON()).toEqual({
       id: 1,
@@ -112,7 +114,7 @@ describe("Entity", () => {
       isActive: true,
       email: undefined,
       level: 1,
-      createdAt: now,
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
     });
   });
 });
