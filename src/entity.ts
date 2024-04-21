@@ -31,5 +31,5 @@ abstract class Entity<EConfig extends EntityConfig> {
 }
 
 export const entity = <EConfig extends EntityConfig>(fields: EConfig) => {
-  return class extends Entity<EConfig> {};
+  return class extends Entity<typeof fields> {};
 };
