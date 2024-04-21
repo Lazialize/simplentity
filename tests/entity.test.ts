@@ -95,4 +95,21 @@ describe("Entity", () => {
     expect(instance1.get("id")).toBe(0);
     expect(instance2.get("id")).toBe(1);
   });
+
+  it("should be able to serialize to JSON", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+    });
+
+    expect(JSON.stringify(instance)).toBe('{"id":1,"name":"testName","isActive":true,"level":1}');
+    expect(instance.toJSON()).toEqual({
+      id: 1,
+      name: "testName",
+      isActive: true,
+      email: undefined,
+      level: 1,
+    });
+  });
 });

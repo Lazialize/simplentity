@@ -29,7 +29,7 @@ abstract class Entity<EConfig extends EntityConfig> {
       (acc, [key, field]) => {
         const value = props[key as keyof typeof props] ?? field.getDefaultValue();
 
-        if (field._.hasDefault && value === undefined) {
+        if (field.getConfig().hasDefault && value === undefined) {
           throw new Error(`The field "${key}" has a default value but undefined was provided.`);
         }
 
@@ -47,6 +47,10 @@ abstract class Entity<EConfig extends EntityConfig> {
 
   protected set<K extends keyof EConfig>(key: K, value: EntityConfigTypeResolver<EConfig>[K]): void {
     this.props[key] = value;
+  }
+
+  toJSON(): EntityConfigTypeResolver<EConfig> {
+    return this.props;
   }
 }
 

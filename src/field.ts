@@ -57,6 +57,10 @@ export abstract class Field<T> implements ConfigurableFieldBase<T> {
     return this as HasDefault<this>;
   }
 
+  getConfig(): FieldRuntimeConfig<T> {
+    return this.config;
+  }
+
   getDefaultValue(): T | undefined {
     return this.config.default ?? this.config.defaultFn?.();
   }
