@@ -1,12 +1,16 @@
 import { describe, expect, it } from "bun:test";
 import { entity } from "../src";
-import { boolean, number, string } from "../src/types.ts";
+import { boolean } from "../src/fields/boolean.ts";
+import { number } from "../src/fields/number.ts";
+import { string } from "../src/fields/string.ts";
 
 describe("Entity", () => {
-  class TestEntity extends entity({
+  class Account extends entity({
+    id: number(),
     name: string(),
-    age: number(),
     isActive: boolean(),
+    email: string().notRequired(),
+    level: number().default(1),
   }) {
     activate() {
       this.set("isActive", true);
@@ -16,36 +20,32 @@ describe("Entity", () => {
       this.set("isActive", false);
     }
 
-    increaseAge() {
-      this.set("age", this.get("age") + 1);
-    }
-
-    decreaseAge() {
-      this.set("age", this.get("age") - 1);
-    }
-
     changeName(name: string) {
       this.set("name", name);
     }
   }
 
   it("should define the entity with given properties", () => {
-    const instance = new TestEntity({
+    const instance = new Account({
+      id: 1,
       name: "testName",
-      age: 20,
       isActive: true,
+      email: "test@test.example",
+      level: 1,
     });
 
+    expect(instance.get("id")).toBe(1);
     expect(instance.get("name")).toBe("testName");
-    expect(instance.get("age")).toBe(20);
     expect(instance.get("isActive")).toBe(true);
   });
 
   it("should update the properties", () => {
-    const instance = new TestEntity({
+    const instance = new Account({
+      id: 1,
       name: "testName",
-      age: 20,
       isActive: true,
+      email: "test@test.example",
+      level: 1,
     });
 
     instance.activate();
@@ -54,13 +54,62 @@ describe("Entity", () => {
     instance.disable();
     expect(instance.get("isActive")).toBe(false);
 
-    instance.increaseAge();
-    expect(instance.get("age")).toBe(21);
-
-    instance.decreaseAge();
-    expect(instance.get("age")).toBe(20);
-
     instance.changeName("newName");
     expect(instance.get("name")).toBe("newName");
+  });
+
+  it("should handle not required and default properties", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+    });
+
+    expect(instance.get("email")).toBeUndefined();
+    expect(instance.get("level")).toBe(1);
+  });
+
+  it("should override default properties", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+      level: 2,
+    });
+
+    expect(instance.get("level")).toBe(2);
+  });
+
+  it("should return the default value if the default value is a function", () => {
+    const sequence = {
+      current: 0,
+      next: () => sequence.current++,
+    };
+    class IdIncrement extends entity({
+      id: number().defaultFn(() => sequence.next()),
+    }) {}
+
+    const instance1 = new IdIncrement({});
+    const instance2 = new IdIncrement({});
+
+    expect(instance1.get("id")).toBe(0);
+    expect(instance2.get("id")).toBe(1);
+  });
+
+  it("should be able to serialize to JSON", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+    });
+
+    expect(JSON.stringify(instance)).toBe('{"id":1,"name":"testName","isActive":true,"level":1}');
+    expect(instance.toJSON()).toEqual({
+      id: 1,
+      name: "testName",
+      isActive: true,
+      email: undefined,
+      level: 1,
+    });
   });
 });
