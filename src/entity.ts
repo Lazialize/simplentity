@@ -27,8 +27,14 @@ abstract class Entity<EConfig extends EntityConfig> {
 
     this.props = Object.entries(entityConfig).reduce(
       (acc, [key, field]) => {
+        const value = props[key as keyof typeof props] ?? field.getDefaultValue();
+
+        if (field._.hasDefault && value === undefined) {
+          throw new Error(`The field "${key}" has a default value but undefined was provided.`);
+        }
+
         // @ts-ignore - Cannot resolve the type of the field
-        acc[key] = props[key as keyof typeof props] ?? field.getDefaultValue();
+        acc[key] = value;
         return acc;
       },
       {} as EntityConfigTypeResolver<EConfig>,
