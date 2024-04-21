@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { entity } from "../src";
-import { boolean, number, string } from "../src/types.ts";
+import { boolean } from "../src/fields/boolean.ts";
+import { number } from "../src/fields/number.ts";
+import { string } from "../src/fields/string.ts";
 
 describe("Entity", () => {
   class TestEntity extends entity({

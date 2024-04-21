@@ -1,21 +1,37 @@
-import type { Field, Resolver } from "./types.ts";
+import type { Field } from "./field.ts";
+import { number } from "./fields/number.ts";
+import { string } from "./fields/string.ts";
 
-abstract class Entity<Props extends { [index: string]: Field }> {
-  protected props: Resolver<Props>;
+type EntityConfig = { [key: string]: Field<unknown> };
+type EntityConfigTypeResolver<T extends EntityConfig> = {
+  [P in keyof T]: T[P] extends Field<infer U>
+    ? T[P]["_"]["notRequired"] extends true
+      ? U | undefined
+      : T[P]["_"]["hasDefault"] extends true
+        ? U | undefined
+        : U
+    : never;
+};
 
-  constructor(props: Resolver<Props>) {
+abstract class Entity<EConfig extends EntityConfig> {
+  protected props: EntityConfigTypeResolver<EConfig>;
+
+  constructor(props: EntityConfigTypeResolver<EConfig>) {
     this.props = props;
   }
 
-  get<K extends keyof Resolver<Props>>(key: K): Resolver<Props>[K] {
+  get<K extends keyof EntityConfigTypeResolver<EConfig>>(key: K): EntityConfigTypeResolver<EConfig>[K] {
     return this.props[key];
   }
 
-  protected set<K extends keyof Resolver<Props>>(key: K, value: Resolver<Props>[K]): void {
+  protected set<K extends keyof EntityConfigTypeResolver<EConfig>>(
+    key: K,
+    value: EntityConfigTypeResolver<EConfig>[K],
+  ): void {
     this.props[key] = value;
   }
 }
 
-export const entity = <Props extends { [index: string]: Field }>(fields: Props) => {
-  return class extends Entity<Props> {};
+export const entity = <EConfig extends EntityConfig>(fields: EConfig) => {
+  return class extends Entity<EConfig> {};
 };
