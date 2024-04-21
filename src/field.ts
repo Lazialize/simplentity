@@ -8,6 +8,7 @@ type FieldRuntimeConfig<T> = {
   notRequired: boolean;
   hasDefault: boolean;
   default: T | undefined;
+  defaultFn?: () => T;
 };
 
 interface ConfigurableFieldBase<T> {
@@ -29,7 +30,7 @@ type HasDefault<T extends ConfigurableFieldBase<unknown>> = T & {
 export abstract class Field<T> implements ConfigurableFieldBase<T> {
   declare _: FieldConfig<T>;
 
-  protected config: FieldRuntimeConfig<this["_"]["data"]>;
+  protected config: FieldRuntimeConfig<T>;
 
   constructor() {
     this.config = {
@@ -44,13 +45,19 @@ export abstract class Field<T> implements ConfigurableFieldBase<T> {
     return this as NotRequired<this>;
   }
 
-  default(value: this["_"]["data"]): HasDefault<this> {
+  default(value: T): HasDefault<this> {
     this.config.default = value;
     this.config.hasDefault = true;
     return this as HasDefault<this>;
   }
 
-  getDefaultValue(): this["_"]["data"] | undefined {
-    return this.config.default;
+  defaultFn(fn: () => T): HasDefault<this> {
+    this.config.defaultFn = fn;
+    this.config.hasDefault = true;
+    return this as HasDefault<this>;
+  }
+
+  getDefaultValue(): T | undefined {
+    return this.config.default ?? this.config.defaultFn?.();
   }
 }

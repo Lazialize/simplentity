@@ -79,4 +79,20 @@ describe("Entity", () => {
 
     expect(instance.get("level")).toBe(2);
   });
+
+  it("should return the default value if the default value is a function", () => {
+    const sequence = {
+      current: 0,
+      next: () => sequence.current++,
+    };
+    class IdIncrement extends entity({
+      id: number().defaultFn(() => sequence.next()),
+    }) {}
+
+    const instance1 = new IdIncrement({});
+    const instance2 = new IdIncrement({});
+
+    expect(instance1.get("id")).toBe(0);
+    expect(instance2.get("id")).toBe(1);
+  });
 });
