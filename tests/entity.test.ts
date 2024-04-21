@@ -1,9 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { entity } from "../src";
-import { boolean } from "../src/fields/boolean.ts";
-import { date } from "../src/fields/date.ts";
-import { number } from "../src/fields/number.ts";
-import { string } from "../src/fields/string.ts";
+import { boolean, date, entity, number, string } from "../src";
 
 describe("Entity", () => {
   const now = new Date();
