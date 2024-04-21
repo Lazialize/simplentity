@@ -2,34 +2,52 @@ import type { Field } from "./field.ts";
 
 type EntityConfig = { [key: string]: Field<unknown> };
 type EntityConfigTypeResolver<T extends EntityConfig> = {
-  [P in keyof T]: T[P] extends Field<infer U>
-    ? T[P]["_"]["notRequired"] extends true
-      ? U | undefined
-      : T[P]["_"]["hasDefault"] extends true
-        ? U | undefined
-        : U
-    : never;
+  [K in keyof T]: T[K]["_"]["notRequired"] extends true ? FieldTypeResolver<T[K]> | undefined : FieldTypeResolver<T[K]>;
+};
+
+type RequiredFieldKeys<T extends EntityConfig> = {
+  [K in keyof T]: T[K]["_"]["notRequired"] extends true ? never : T[K]["_"]["hasDefault"] extends true ? never : K;
+}[keyof T];
+
+type FieldTypeResolver<T> = T extends Field<infer U> ? U : never;
+
+type EntityPropInputResolver<T extends EntityConfig> = {
+  [K in RequiredFieldKeys<T>]: FieldTypeResolver<T[K]>;
+} & {
+  [K in keyof Omit<T, RequiredFieldKeys<T>>]?: FieldTypeResolver<T[K]>;
 };
 
 abstract class Entity<EConfig extends EntityConfig> {
+  readonly #entityConfig: EConfig;
   protected props: EntityConfigTypeResolver<EConfig>;
 
-  constructor(props: EntityConfigTypeResolver<EConfig>) {
-    this.props = props;
+  protected constructor(props: EntityPropInputResolver<EConfig>, entityConfig: EConfig) {
+    this.#entityConfig = entityConfig;
+    Object.freeze(this.#entityConfig);
+
+    this.props = Object.entries(entityConfig).reduce(
+      (acc, [key, field]) => {
+        const value = props[key as keyof typeof props] ?? field.getDefaultValue();
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        return { ...acc, [key]: value };
+      },
+      {} as EntityConfigTypeResolver<EConfig>,
+    );
   }
 
-  get<K extends keyof EntityConfigTypeResolver<EConfig>>(key: K): EntityConfigTypeResolver<EConfig>[K] {
+  get<K extends keyof EConfig>(key: K): EntityConfigTypeResolver<EConfig>[K] {
     return this.props[key];
   }
 
-  protected set<K extends keyof EntityConfigTypeResolver<EConfig>>(
-    key: K,
-    value: EntityConfigTypeResolver<EConfig>[K],
-  ): void {
+  protected set<K extends keyof EConfig>(key: K, value: EntityConfigTypeResolver<EConfig>[K]): void {
     this.props[key] = value;
   }
 }
 
 export const entity = <EConfig extends EntityConfig>(fields: EConfig) => {
-  return class extends Entity<typeof fields> {};
+  return class extends Entity<typeof fields> {
+    constructor(props: EntityPropInputResolver<EConfig>) {
+      super(props, fields);
+    }
+  };
 };

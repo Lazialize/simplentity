@@ -63,11 +63,20 @@ describe("Entity", () => {
       id: 1,
       name: "testName",
       isActive: true,
-      email: undefined,
-      level: undefined,
     });
 
     expect(instance.get("email")).toBeUndefined();
     expect(instance.get("level")).toBe(1);
+  });
+
+  it("should override default properties", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+      level: 2,
+    });
+
+    expect(instance.get("level")).toBe(2);
   });
 });

@@ -49,4 +49,8 @@ export abstract class Field<T> implements ConfigurableFieldBase<T> {
     this.config.hasDefault = true;
     return this as HasDefault<this>;
   }
+
+  getDefaultValue(): this["_"]["data"] | undefined {
+    return this.config.default;
+  }
 }
