@@ -1,6 +1,4 @@
 import type { Field } from "./field.ts";
-import { number } from "./fields/number.ts";
-import { string } from "./fields/string.ts";
 
 type EntityConfig = { [key: string]: Field<unknown> };
 type EntityConfigTypeResolver<T extends EntityConfig> = {
