@@ -1,16 +1,18 @@
-import { describe, expect, it } from "bun:test";
-import { entity } from "../src";
-import { boolean } from "../src/fields/boolean.ts";
-import { number } from "../src/fields/number.ts";
-import { string } from "../src/fields/string.ts";
+import { beforeAll, describe, expect, it, setSystemTime } from "bun:test";
+import { boolean, date, entity, number, string } from "../src";
 
 describe("Entity", () => {
+  beforeAll(() => {
+    setSystemTime(new Date("2024-01-01T00:00:00.000Z"));
+  });
+
   class Account extends entity({
     id: number(),
     name: string(),
     isActive: boolean(),
     email: string().notRequired(),
     level: number().default(1),
+    createdAt: date().defaultFn(() => new Date()),
   }) {
     activate() {
       this.set("isActive", true);
@@ -103,13 +105,16 @@ describe("Entity", () => {
       isActive: true,
     });
 
-    expect(JSON.stringify(instance)).toBe('{"id":1,"name":"testName","isActive":true,"level":1}');
+    expect(JSON.stringify(instance)).toBe(
+      `{"id":1,"name":"testName","isActive":true,"level":1,"createdAt":"2024-01-01T00:00:00.000Z"}`,
+    );
     expect(instance.toJSON()).toEqual({
       id: 1,
       name: "testName",
       isActive: true,
       email: undefined,
       level: 1,
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
     });
   });
 });
