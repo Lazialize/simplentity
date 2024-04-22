@@ -1,0 +1,12 @@
+node_modules
+src
+.gitignore
+biome.json
+build.ts
+tsconfig.json
+tsconfig.dts.json
+.husky
+.github
+.idea
+bunfig.toml
+tests

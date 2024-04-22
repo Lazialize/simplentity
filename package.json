@@ -1,7 +1,10 @@
 {
   "name": "simplentity",
-  "module": "src/index.ts",
+  "version": "1.0.0",
   "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
   "scripts": {
     "check": "biome check ./src",
     "check:apply": "biome check ./src --apply",
