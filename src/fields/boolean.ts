@@ -1,4 +1,4 @@
-import { Field } from "../field.ts";
+import { Field } from "../field";
 
 class BooleanField extends Field<boolean> {}
 

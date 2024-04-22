@@ -1,4 +1,4 @@
-import type { Field } from "./field.ts";
+import type { Field } from "./field";
 
 type EntityConfig = { [key: string]: Field<unknown> };
 type EntityConfigTypeResolver<T extends EntityConfig> = {
@@ -19,13 +19,13 @@ type EntityPropInputResolver<T extends EntityConfig> = {
 
 abstract class Entity<EConfig extends EntityConfig> {
   readonly #entityConfig: EConfig;
-  protected props: EntityConfigTypeResolver<EConfig>;
+  #props: EntityConfigTypeResolver<EConfig>;
 
   protected constructor(props: EntityPropInputResolver<EConfig>, entityConfig: EConfig) {
     this.#entityConfig = entityConfig;
     Object.freeze(this.#entityConfig);
 
-    this.props = Object.entries(entityConfig).reduce(
+    this.#props = Object.entries(entityConfig).reduce(
       (acc, [key, field]) => {
         const value = props[key as keyof typeof props] ?? field.getDefaultValue();
 
@@ -42,15 +42,15 @@ abstract class Entity<EConfig extends EntityConfig> {
   }
 
   get<K extends keyof EConfig>(key: K): EntityConfigTypeResolver<EConfig>[K] {
-    return this.props[key];
+    return this.#props[key];
   }
 
-  protected set<K extends keyof EConfig>(key: K, value: EntityConfigTypeResolver<EConfig>[K]): void {
-    this.props[key] = value;
+  set<K extends keyof EConfig>(key: K, value: EntityConfigTypeResolver<EConfig>[K]): void {
+    this.#props[key] = value;
   }
 
   toJSON(): EntityConfigTypeResolver<EConfig> {
-    return this.props;
+    return this.#props;
   }
 }
 

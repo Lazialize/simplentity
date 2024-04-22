@@ -20,7 +20,6 @@ class User extends entity({
 }) {
   activate(): void {
     // You can get suggestions for the properties of the entity.
-    // The set method's accessor is protected, so you can't manipulate properties outside the entity.
     this.set('isActive', true);
   }
   
