@@ -1,4 +1,4 @@
-import { Field } from "../field.ts";
+import { Field } from "../field";
 
 class NumberField extends Field<number> {}
 
