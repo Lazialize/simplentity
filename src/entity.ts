@@ -41,10 +41,22 @@ abstract class Entity<EConfig extends EntityConfig> {
     );
   }
 
+  /**
+   * Get the value of the field by key
+   * @param key
+   */
   get<K extends keyof EConfig>(key: K): EntityConfigTypeResolver<EConfig>[K] {
     return this.#props[key];
   }
 
+  /**
+   * Set the value of the field by key
+   *
+   * WARNING: This method should be called only from the methods of the entity.
+   * Its accessor should be protected but TypeScript declaration does not allow protected methods in exported classes.
+   * @param key
+   * @param value
+   */
   set<K extends keyof EConfig>(key: K, value: EntityConfigTypeResolver<EConfig>[K]): void {
     this.#props[key] = value;
   }
@@ -54,6 +66,10 @@ abstract class Entity<EConfig extends EntityConfig> {
   }
 }
 
+/**
+ * Create an entity class with the given fields
+ * @param fields
+ */
 export const entity = <EConfig extends EntityConfig>(fields: EConfig) => {
   return class extends Entity<typeof fields> {
     constructor(props: EntityPropInputResolver<EConfig>) {
