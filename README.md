@@ -5,7 +5,8 @@ It provides the implementation of type-safe entities and manipulation.
 
 > [!NOTE]
 > I created the library to learn Typescript and the type system for me.
-> So, the library may not be suitable for production use.
+> So, it may not be suitable for production use.
+
 
 ## Installation
 Coming soon...
