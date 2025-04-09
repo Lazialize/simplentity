@@ -3,5 +3,5 @@ pre-commit:
   jobs:
     - name: biome
       glob: "*.ts"
-      run: biome check {staged_files} --apply
+      run: biome check {staged_files} --write
       stage_fixed: true

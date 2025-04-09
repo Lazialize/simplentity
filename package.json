@@ -7,7 +7,6 @@
   "main": "./dist/cjs/index.js",
   "scripts": {
     "check": "biome check ./src",
-    "check:apply": "biome check ./src --apply",
     "build": "bun run ./build.ts",
     "prepare": "bun lefthook install"
   },
