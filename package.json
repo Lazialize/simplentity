@@ -9,21 +9,15 @@
     "check": "biome check ./src",
     "check:apply": "biome check ./src --apply",
     "build": "bun run ./build.ts",
-    "prepare": "husky"
+    "prepare": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
     "@types/bun": "latest",
-    "husky": "^9.1.7",
-    "lint-staged": "^15.5.0",
+    "lefthook": "^1.11.8",
     "tsup": "^8.4.0"
   },
   "peerDependencies": {
     "typescript": "^5.4.4"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "biome check --apply"
-    ]
   }
 }
