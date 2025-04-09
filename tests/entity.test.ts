@@ -108,7 +108,7 @@ describe("Entity", () => {
     expect(JSON.stringify(instance)).toBe(
       `{"id":1,"name":"testName","isActive":true,"level":1,"createdAt":"2024-01-01T00:00:00.000Z"}`,
     );
-    expect(instance.toJSON()).toEqual({
+    expect(instance.toJson()).toEqual({
       id: 1,
       name: "testName",
       isActive: true,
