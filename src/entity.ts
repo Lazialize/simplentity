@@ -1,4 +1,4 @@
-import type { Field } from "./field";
+import type { Field } from "./field.ts";
 
 type EntityConfig = { [key: string]: Field<unknown> };
 type EntityConfigTypeResolver<T extends EntityConfig> = {
@@ -17,11 +17,11 @@ type EntityPropInputResolver<T extends EntityConfig> = {
   [K in keyof Omit<T, RequiredFieldKeys<T>>]?: FieldTypeResolver<T[K]>;
 };
 
-abstract class Entity<EConfig extends EntityConfig> {
-  readonly #entityConfig: EConfig;
-  #props: EntityConfigTypeResolver<EConfig>;
+abstract class Entity<Config extends EntityConfig> {
+  readonly #entityConfig: Config;
+  #props: EntityConfigTypeResolver<Config>;
 
-  protected constructor(props: EntityPropInputResolver<EConfig>, entityConfig: EConfig) {
+  protected constructor(props: EntityPropInputResolver<Config>, entityConfig: Config) {
     this.#entityConfig = entityConfig;
     Object.freeze(this.#entityConfig);
 
@@ -37,7 +37,7 @@ abstract class Entity<EConfig extends EntityConfig> {
         acc[key] = value;
         return acc;
       },
-      {} as EntityConfigTypeResolver<EConfig>,
+      {} as EntityConfigTypeResolver<Config>,
     );
   }
 
@@ -45,7 +45,7 @@ abstract class Entity<EConfig extends EntityConfig> {
    * Get the value of the field by key
    * @param key
    */
-  get<K extends keyof EConfig>(key: K): EntityConfigTypeResolver<EConfig>[K] {
+  get<K extends keyof Config>(key: K): EntityConfigTypeResolver<Config>[K] {
     return this.#props[key];
   }
 
@@ -57,11 +57,11 @@ abstract class Entity<EConfig extends EntityConfig> {
    * @param key
    * @param value
    */
-  set<K extends keyof EConfig>(key: K, value: EntityConfigTypeResolver<EConfig>[K]): void {
+  set<K extends keyof Config>(key: K, value: EntityConfigTypeResolver<Config>[K]): void {
     this.#props[key] = value;
   }
 
-  toJSON(): EntityConfigTypeResolver<EConfig> {
+  toJson(): EntityConfigTypeResolver<Config> {
     return this.#props;
   }
 }
@@ -70,9 +70,9 @@ abstract class Entity<EConfig extends EntityConfig> {
  * Create an entity class with the given fields
  * @param fields
  */
-export const entity = <EConfig extends EntityConfig>(fields: EConfig) => {
+export const entity = <Config extends EntityConfig>(fields: Config) => {
   return class extends Entity<typeof fields> {
-    constructor(props: EntityPropInputResolver<EConfig>) {
+    constructor(props: EntityPropInputResolver<Config>) {
       super(props, fields);
     }
   };
