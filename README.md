@@ -9,7 +9,9 @@ It provides the implementation of type-safe entities and manipulation.
 
 
 ## Installation
-Coming soon...
+```shell
+npm install simplentity
+```
 
 ## Usage
 
@@ -54,7 +56,6 @@ const name = user.get('name'); // 'John Doe'
 ## Todo
 - [ ] Add more built-in types
 - [ ] Validation
-- [ ] JSON serialization
 - [ ] Custom field types
 - [ ] Custom field validation
 - [ ] Custom field serialization
