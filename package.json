@@ -1,14 +1,16 @@
 {
   "name": "simplentity",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "main": "./dist/cjs/index.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "check": "bun biome check ./src",
-    "build": "bun run ./build.ts",
-    "prepare": "bun lefthook install"
+    "build": "bun run ./build.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

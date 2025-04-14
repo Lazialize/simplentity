@@ -10,6 +10,7 @@
     "emitDeclarationOnly": true,
     "outDir": "./dist",
     "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
