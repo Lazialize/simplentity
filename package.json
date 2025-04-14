@@ -30,5 +30,9 @@
   },
   "bugs": {
     "url": "https://github.com/Lazialize/simplentity/issues"
-  }
+  },
+  "keywords": [
+    "entity",
+    "type-safe"
+  ]
 }
