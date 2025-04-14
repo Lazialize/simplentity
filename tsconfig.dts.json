@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "preserveSymlinks": true,
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "rootDir": "./src",
+    "moduleResolution": "node",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist",
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "exclude": ["node_modules", "dist", "tests", "build.ts"]
+}
