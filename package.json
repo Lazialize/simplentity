@@ -24,5 +24,11 @@
   "trustedDependencies": [
     "@biomejs/biome",
     "lefthook"
-  ]
+  ],
+  "repository": {
+    "url": "https://github.com/Lazialize/simplentity"
+  },
+  "bugs": {
+    "url": "https://github.com/Lazialize/simplentity/issues"
+  }
 }
