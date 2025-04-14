@@ -4,7 +4,7 @@ The simplentity is a simple typed entity library.
 It provides the implementation of type-safe entities and manipulation.
 
 > [!NOTE]
-> I created the library to learn Typescript and the type system for me.
+> I created the library to learn TypeScript and the type system for me.
 > So, it may not be suitable for production use.
 
 
