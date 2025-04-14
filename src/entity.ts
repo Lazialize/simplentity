@@ -30,11 +30,12 @@ abstract class Entity<Config extends EntityConfig> {
         const value = props[key as keyof typeof props] ?? field.getDefaultValue();
 
         if (field.getConfig().hasDefault && value === undefined) {
-          throw new Error(`The field "${key}" has a default value but undefined was provided.`);
+          // @ts-ignore - Cannot resolve the type of the field
+          acc[key] = field.getDefaultValue();
+        } else {
+          // @ts-ignore - Cannot resolve the type of the field
+          acc[key] = value;
         }
-
-        // @ts-ignore - Cannot resolve the type of the field
-        acc[key] = value;
         return acc;
       },
       {} as EntityConfigTypeResolver<Config>,
