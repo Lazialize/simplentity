@@ -30,7 +30,7 @@ type HasDefault<T extends ConfigurableFieldBase<unknown>> = T & {
 export abstract class Field<T> implements ConfigurableFieldBase<T> {
   declare _: FieldConfig<T>;
 
-  protected config: FieldRuntimeConfig<T>;
+  config: FieldRuntimeConfig<T>;
 
   constructor() {
     this.config = {
