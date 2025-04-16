@@ -81,8 +81,8 @@ export function entity<C extends EntityConfig, D extends MethodDefinition>(
           }
           return acc;
         },
-        {} as Record<string, unknown>,
-      ) as EntityConfigTypeResolver<C>;
+        {} as EntityConfigTypeResolver<C>,
+      );
 
       const set = <K extends keyof C>(key: K, value: EntityConfigTypeResolver<C>[K]) => {
         assignedProps[key] = value;
@@ -98,10 +98,9 @@ export function entity<C extends EntityConfig, D extends MethodDefinition>(
 
       return {
         get,
-        set,
         toJSON,
         ...methods,
-      } as EntityInterface<C> & D;
+      };
     },
   };
 }
