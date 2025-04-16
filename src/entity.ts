@@ -93,7 +93,7 @@ export function entity<C extends EntityConfig, D extends MethodDefinition>(
       const toJSON = (): EntityConfigTypeResolver<C> => {
         return assignedProps;
       };
-      const methods = methodDefinitionFunction?.({ set, get }) ?? {};
+      const methods: D = methodDefinitionFunction?.({ set, get }) ?? ({} as D);
 
       return {
         props: assignedProps,
@@ -101,7 +101,7 @@ export function entity<C extends EntityConfig, D extends MethodDefinition>(
         set,
         toJSON,
         ...methods,
-      } as unknown as EntityInterface<C> & D;
+      } as EntityInterface<C> & D;
     },
   };
 }
