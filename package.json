@@ -1,6 +1,6 @@
 {
   "name": "simplentity",
-  "version": "0.1.2",
+  "version": "1.0.0-alpha.0",
   "description": "A type-safe entity library for TypeScript.",
   "type": "module",
   "module": "./dist/index.js",
