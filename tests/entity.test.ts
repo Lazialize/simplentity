@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, setSystemTime } from "bun:test";
-import { boolean, createEntity, date, number, string } from "../src";
+import { boolean, createEntity, date, entity, number, string } from "../src";
 
 describe("Entity", () => {
   beforeAll(() => {
@@ -119,5 +119,30 @@ describe("Entity", () => {
       level: 1,
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
     });
+  });
+
+  it("should define the entity with entity field", () => {
+    const parentFactory = createEntity({
+      id: number(),
+      name: string(),
+    });
+
+    const childFactory = createEntity({
+      id: number(),
+      name: string(),
+      parent: entity<typeof parentFactory.$infer>(),
+    });
+
+    const parentInstance = parentFactory.create({
+      id: 1,
+      name: "parentName",
+    });
+    const childInstance = childFactory.create({
+      id: 2,
+      name: "childName",
+      parent: parentInstance,
+    });
+
+    expect(childInstance.get("parent").get("id")).toBe(1);
   });
 });
