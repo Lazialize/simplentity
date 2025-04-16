@@ -19,25 +19,24 @@ npm install simplentity
 import {entity, number, string, boolean} from 'simplentity';
 
 // Define a user entity
-class User extends entity({
+const userFactory = entity({
   id: string().defaultFn(() => randomUUID()), // randomUUID is a third-party library. Not included.
   name: string(),
   age: number().notRequired(),
   isActive: boolean().default(true),
-}) {
-  activate(): void {
+}, ({ set }) => ({
+  activate: () => {
     // You can get suggestions for the properties of the entity.
-    this.set('isActive', true);
+    set('isActive', true)
+  },
+  deactivate: () => {
+    set('isActive', false)
   }
-  
-  deactivate(): void {
-    this.set('isActive', false);
-  }
-}
+}))
 
 // Properties that have NotRequired or Default(Fn) are optional.
 // If a property has a default value, it is automatically assigned to the property when you create the entity instance.
-const user = new User({
+const user = userFactory.create({
   name: 'John Doe',
 })
 /*
