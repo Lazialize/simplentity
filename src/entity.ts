@@ -17,63 +17,91 @@ type EntityPropInputResolver<T extends EntityConfig> = {
   [K in keyof Omit<T, RequiredFieldKeys<T>>]?: FieldTypeResolver<T[K]>;
 };
 
-abstract class Entity<Config extends EntityConfig> {
-  readonly #entityConfig: Config;
-  #props: EntityConfigTypeResolver<Config>;
-
-  protected constructor(props: EntityPropInputResolver<Config>, entityConfig: Config) {
-    this.#entityConfig = entityConfig;
-    Object.freeze(this.#entityConfig);
-
-    this.#props = Object.entries(entityConfig).reduce(
-      (acc, [key, field]) => {
-        const value = props[key as keyof typeof props] ?? field.getDefaultValue();
-
-        if (field.getConfig().hasDefault && value === undefined) {
-          (acc as Record<string, unknown>)[key] = field.getDefaultValue();
-        } else {
-          (acc as Record<string, unknown>)[key] = value;
-        }
-        return acc;
-      },
-      {} as Record<string, unknown>,
-    ) as EntityConfigTypeResolver<Config>;
-  }
-
-  /**
-   * Get the value of the field by key
-   * @param key
-   */
-  get<K extends keyof Config>(key: K): EntityConfigTypeResolver<Config>[K] {
-    return this.#props[key];
-  }
-
-  /**
-   * Set the value of the field by key
-   *
-   * WARNING: This method should be called only from the methods of the entity.
-   * Its accessor should be protected but TypeScript declaration does not allow protected methods in exported classes.
-   * @param key
-   * @param value
-   */
-  set<K extends keyof Config>(key: K, value: EntityConfigTypeResolver<Config>[K]): void {
-    this.#props[key] = value;
-  }
-
+type MethodDefinition = {
+  [key: symbol]: (...args: unknown[]) => unknown;
+};
+interface EntityInterface<C extends EntityConfig> {
+  get: <K extends keyof C>(key: K) => EntityConfigTypeResolver<C>[K];
   // biome-ignore lint/style/useNamingConvention: toJSON is a name to be used in JSON.stringify
-  toJSON(): EntityConfigTypeResolver<Config> {
-    return this.#props;
-  }
+  toJSON: () => EntityConfigTypeResolver<C>;
 }
 
 /**
- * Create an entity class with the given fields
- * @param fields
+ * Creates an entity factory function that allows defining fields and optional methods for an entity.
+ * The returned factory provides a `create` method to instantiate entities with the specified fields
+ * and methods, while also supporting default values and runtime property manipulation.
+ *
+ * @template C - The configuration type for the entity fields.
+ * @template D - The type of the methods defined for the entity.
+ *
+ * @param fields - An object defining the fields of the entity. Each field should include its configuration
+ *                 and a method to retrieve its default value.
+ * @param methodDefinitionFunction - An optional function that defines additional methods for the entity.
+ *                                   It receives an object with `set` and `get` functions to manipulate
+ *                                   the entity's properties.
+ *
+ * @returns An object with a `create` method. The `create` method accepts an input object to initialize
+ *          the entity's properties and returns an entity instance with the defined fields, methods,
+ *          and utility functions (`get`, `set`, `toJSON`).
+ *
+ * @example
+ * ```typescript
+ * const userFactory = entity({
+ *   name: string(),
+ *   age: number().default(18),
+ *   isActive: boolean().default(true),
+ * }, ({ set, get }) => ({
+ *   incrementAge: () => set('age', get('age') + 1),
+ * }));
+ *
+ * const user = userFactory.create({ name: 'John' });
+ * console.log(user.props); // { name: 'John', age: 18, isActive: true }
+ * user.incrementAge();
+ * console.log(user.props.age); // 19
+ * ```
  */
-export const entity = <Config extends EntityConfig>(fields: Config) => {
-  return class extends Entity<typeof fields> {
-    constructor(props: EntityPropInputResolver<Config>) {
-      super(props, fields);
-    }
+export function entity<C extends EntityConfig, D extends MethodDefinition>(
+  fields: C,
+  methodDefinitionFunction?: (params: {
+    set: <K extends keyof C>(key: K, value: EntityConfigTypeResolver<C>[K]) => void;
+    get: <K extends keyof C>(key: K) => EntityConfigTypeResolver<C>[K];
+  }) => D,
+) {
+  return {
+    create(props: EntityPropInputResolver<C>): EntityInterface<C> & D {
+      const assignedProps = Object.entries(fields).reduce(
+        (acc, [key, field]) => {
+          const value = props[key as keyof typeof props] ?? field.getDefaultValue();
+
+          if (field.getConfig().hasDefault && value === undefined) {
+            (acc as Record<string, unknown>)[key] = field.getDefaultValue();
+          } else {
+            (acc as Record<string, unknown>)[key] = value;
+          }
+          return acc;
+        },
+        {} as Record<string, unknown>,
+      ) as EntityConfigTypeResolver<C>;
+
+      const set = <K extends keyof C>(key: keyof C, value: EntityConfigTypeResolver<C>[K]) => {
+        assignedProps[key] = value;
+      };
+      const get = <K extends keyof C>(key: K): EntityConfigTypeResolver<C>[K] => {
+        return assignedProps[key];
+      };
+      // biome-ignore lint/style/useNamingConvention: toJSON is a name to be used in JSON.stringify
+      const toJSON = (): EntityConfigTypeResolver<C> => {
+        return assignedProps;
+      };
+      const methods = methodDefinitionFunction?.({ set, get }) ?? {};
+
+      return {
+        props: assignedProps,
+        get,
+        set,
+        toJSON,
+        ...methods,
+      } as unknown as EntityInterface<C> & D;
+    },
   };
-};
+}

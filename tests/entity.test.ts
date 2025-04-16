@@ -6,29 +6,31 @@ describe("Entity", () => {
     setSystemTime(new Date("2024-01-01T00:00:00.000Z"));
   });
 
-  class Account extends entity({
-    id: number(),
-    name: string(),
-    isActive: boolean(),
-    email: string().notRequired(),
-    level: number().default(1),
-    createdAt: date().defaultFn(() => new Date()),
-  }) {
-    activate() {
-      this.set("isActive", true);
-    }
+  const accountFactory = entity(
+    {
+      id: number(),
+      name: string(),
+      isActive: boolean(),
+      email: string().notRequired(),
+      level: number().default(1),
+      createdAt: date().defaultFn(() => new Date()),
+    },
+    ({ set }) => ({
+      activate() {
+        set("isActive", true);
+      },
 
-    disable() {
-      this.set("isActive", false);
-    }
-
-    changeName(name: string) {
-      this.set("name", name);
-    }
-  }
+      disable() {
+        set("isActive", false);
+      },
+      changeName(name: string) {
+        set("name", name);
+      },
+    }),
+  );
 
   it("should define the entity with given properties", () => {
-    const instance = new Account({
+    const instance = accountFactory.create({
       id: 1,
       name: "testName",
       isActive: true,
@@ -42,7 +44,7 @@ describe("Entity", () => {
   });
 
   it("should update the properties", () => {
-    const instance = new Account({
+    const instance = accountFactory.create({
       id: 1,
       name: "testName",
       isActive: true,
@@ -61,7 +63,7 @@ describe("Entity", () => {
   });
 
   it("should handle not required and default properties", () => {
-    const instance = new Account({
+    const instance = accountFactory.create({
       id: 1,
       name: "testName",
       isActive: true,
@@ -72,7 +74,7 @@ describe("Entity", () => {
   });
 
   it("should override default properties", () => {
-    const instance = new Account({
+    const instance = accountFactory.create({
       id: 1,
       name: "testName",
       isActive: true,
@@ -87,19 +89,20 @@ describe("Entity", () => {
       current: 0,
       next: () => sequence.current++,
     };
-    class IdIncrement extends entity({
-      id: number().defaultFn(() => sequence.next()),
-    }) {}
 
-    const instance1 = new IdIncrement({});
-    const instance2 = new IdIncrement({});
+    const idIncrementFactory = entity({
+      id: number().defaultFn(() => sequence.next()),
+    });
+
+    const instance1 = idIncrementFactory.create({});
+    const instance2 = idIncrementFactory.create({});
 
     expect(instance1.get("id")).toBe(0);
     expect(instance2.get("id")).toBe(1);
   });
 
   it("should be able to serialize to JSON", () => {
-    const instance = new Account({
+    const instance = accountFactory.create({
       id: 1,
       name: "testName",
       isActive: true,
