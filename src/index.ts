@@ -1,4 +1,4 @@
-import { entity } from "./entity.ts";
-import { boolean, date, number, string } from "./fields/index.ts";
+import { createEntity } from "./entity.ts";
+import { boolean, date, entity, number, string } from "./fields/index.ts";
 
-export { entity, string, number, boolean, date };
+export { createEntity, string, number, boolean, date, entity };
