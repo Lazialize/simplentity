@@ -96,7 +96,6 @@ export function entity<C extends EntityConfig, D extends MethodDefinition>(
       const methods: D = methodDefinitionFunction?.({ set, get }) ?? ({} as D);
 
       return {
-        props: assignedProps,
         get,
         set,
         toJSON,
