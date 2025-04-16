@@ -18,7 +18,8 @@ type EntityPropInputResolver<T extends EntityConfig> = {
 };
 
 type MethodDefinition = {
-  [key: symbol]: (...args: unknown[]) => unknown;
+  // biome-ignore lint/suspicious/noExplicitAny: any is used to allow any method signature
+  [key: string]: (...args: any[]) => any;
 };
 interface EntityInterface<C extends EntityConfig> {
   get: <K extends keyof C>(key: K) => EntityConfigTypeResolver<C>[K];
