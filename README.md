@@ -16,10 +16,10 @@ npm install simplentity
 ## Usage
 
 ```typescript
-import {entity, number, string, boolean} from 'simplentity';
+import {createEntity, number, string, boolean} from 'simplentity';
 
 // Define a user entity
-const userFactory = entity({
+const userFactory = createEntity({
   id: string().defaultFn(() => randomUUID()), // randomUUID is a third-party library. Not included.
   name: string(),
   age: number().notRequired(),

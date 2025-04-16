@@ -47,7 +47,7 @@ interface EntityInterface<C extends EntityConfig> {
  *
  * @example
  * ```typescript
- * const userFactory = entity({
+ * const userFactory = createEntity({
  *   name: string(),
  *   age: number().default(18),
  *   isActive: boolean().default(true),
@@ -61,7 +61,7 @@ interface EntityInterface<C extends EntityConfig> {
  * console.log(user.props.age); // 19
  * ```
  */
-export function entity<C extends EntityConfig, D extends MethodDefinition>(
+export function createEntity<C extends EntityConfig, D extends MethodDefinition>(
   fields: C,
   methodDefinitionFunction?: (params: {
     set: <K extends keyof C>(key: K, value: EntityConfigTypeResolver<C>[K]) => void;

@@ -1,12 +1,12 @@
 import { beforeAll, describe, expect, it, setSystemTime } from "bun:test";
-import { boolean, date, entity, number, string } from "../src";
+import { boolean, createEntity, date, number, string } from "../src";
 
 describe("Entity", () => {
   beforeAll(() => {
     setSystemTime(new Date("2024-01-01T00:00:00.000Z"));
   });
 
-  const accountFactory = entity(
+  const accountFactory = createEntity(
     {
       id: number(),
       name: string(),
@@ -90,7 +90,7 @@ describe("Entity", () => {
       next: () => sequence.current++,
     };
 
-    const idIncrementFactory = entity({
+    const idIncrementFactory = createEntity({
       id: number().defaultFn(() => sequence.next()),
     });
 
