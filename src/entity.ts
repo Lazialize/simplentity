@@ -34,6 +34,15 @@ class EntityFactory<C extends EntityConfig, D extends MethodDefinition> {
     get: <K extends keyof C>(key: K) => EntityConfigTypeResolver<C>[K];
   }) => D;
 
+  /**
+   * A declaration of a readonly property `$infer` that combines the properties
+   * and methods of `EntityInterface<C>` and `D`.
+   *
+   * This property is used to infer the type of the entity instance created by the factory.
+   *
+   * @template C - The type parameter for the `EntityInterface`.
+   * @template D - The additional type to be merged with `EntityInterface<C>`.
+   */
   declare readonly $infer: EntityInterface<C> & D;
 
   constructor(
