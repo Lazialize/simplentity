@@ -6,7 +6,7 @@ describe("Entity", () => {
     setSystemTime(new Date("2024-01-01T00:00:00.000Z"));
   });
 
-  const accountFactory = createEntity(
+  const [accountFactory, isAccount] = createEntity(
     {
       id: number(),
       name: string(),
@@ -90,7 +90,7 @@ describe("Entity", () => {
       next: () => sequence.current++,
     };
 
-    const idIncrementFactory = createEntity({
+    const [idIncrementFactory] = createEntity({
       id: number().defaultFn(() => sequence.next()),
     });
 
@@ -122,12 +122,12 @@ describe("Entity", () => {
   });
 
   it("should define the entity with entity field", () => {
-    const parentFactory = createEntity({
+    const [parentFactory] = createEntity({
       id: number(),
       name: string(),
     });
 
-    const childFactory = createEntity({
+    const [childFactory] = createEntity({
       id: number(),
       name: string(),
       parent: entity<typeof parentFactory.$infer>(),
@@ -144,5 +144,21 @@ describe("Entity", () => {
     });
 
     expect(childInstance.get("parent").get("id")).toBe(1);
+  });
+
+  it("should check if an object is an entity", () => {
+    const instance = accountFactory.create({
+      id: 1,
+      name: "testName",
+      isActive: true,
+    });
+
+    expect(isAccount(instance)).toBe(true);
+    expect(isAccount("text")).toBe(false);
+    expect(isAccount(1)).toBe(false);
+    expect(isAccount(Symbol())).toBe(false);
+    expect(isAccount({})).toBe(false);
+    expect(isAccount(null)).toBe(false);
+    expect(isAccount(undefined)).toBe(false);
   });
 });

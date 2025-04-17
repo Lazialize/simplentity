@@ -33,6 +33,7 @@ class EntityFactory<C extends EntityConfig, D extends MethodDefinition> {
     set: <K extends keyof C>(key: K, value: EntityConfigTypeResolver<C>[K]) => void;
     get: <K extends keyof C>(key: K) => EntityConfigTypeResolver<C>[K];
   }) => D;
+  private readonly _simplentityTag: string;
 
   /**
    * A declaration of a readonly property `$infer` that combines the properties
@@ -46,6 +47,7 @@ class EntityFactory<C extends EntityConfig, D extends MethodDefinition> {
   declare readonly $infer: EntityInterface<C> & D;
 
   constructor(
+    tag: string,
     fields: C,
     methodDefinitionFunction?: (params: {
       set: <K extends keyof C>(key: K, value: EntityConfigTypeResolver<C>[K]) => void;
@@ -54,6 +56,7 @@ class EntityFactory<C extends EntityConfig, D extends MethodDefinition> {
   ) {
     this.fields = fields;
     this.methodDefinitionFunction = methodDefinitionFunction;
+    this._simplentityTag = tag;
   }
 
   create(props: EntityPropInputResolver<C>): EntityInterface<C> & D {
@@ -84,6 +87,7 @@ class EntityFactory<C extends EntityConfig, D extends MethodDefinition> {
     const methods: D = this.methodDefinitionFunction?.({ set, get }) ?? ({} as D);
 
     return {
+      _simplentityTag: this._simplentityTag,
       get,
       toJSON,
       ...methods,
@@ -131,6 +135,17 @@ export function createEntity<C extends EntityConfig, D extends MethodDefinition>
     set: <K extends keyof C>(key: K, value: EntityConfigTypeResolver<C>[K]) => void;
     get: <K extends keyof C>(key: K) => EntityConfigTypeResolver<C>[K];
   }) => D,
-) {
-  return new EntityFactory<C, D>(fields, methodDefinitionFunction);
+): [EntityFactory<C, D>, (obj: unknown) => obj is EntityInterface<C> & D] {
+  const tag = `EntityFactory_${Math.random().toString(36).substring(2, 15)}`;
+
+  const guard = (obj: unknown): obj is EntityInterface<C> & D => {
+    return (
+      typeof obj === "object" &&
+      obj !== null &&
+      "_simplentityTag" in obj &&
+      (obj as { _simplentityTag: string })._simplentityTag === tag
+    );
+  };
+
+  return [new EntityFactory<C, D>(tag, fields, methodDefinitionFunction), guard];
 }
