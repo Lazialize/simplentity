@@ -147,18 +147,37 @@ describe("Entity", () => {
   });
 
   it("should check if an object is an entity", () => {
-    const instance = accountFactory.create({
-      id: 1,
-      name: "testName",
-      isActive: true,
+    const [entity, isEntity] = createEntity({
+      id: number(),
+      name: string(),
     });
 
-    expect(isAccount(instance)).toBe(true);
-    expect(isAccount("text")).toBe(false);
-    expect(isAccount(1)).toBe(false);
-    expect(isAccount(Symbol())).toBe(false);
-    expect(isAccount({})).toBe(false);
-    expect(isAccount(null)).toBe(false);
-    expect(isAccount(undefined)).toBe(false);
+    const [differentEntity, isDifferentEntity] = createEntity({
+      id: number(),
+      name: string(),
+    });
+
+    const instance = entity.create({
+      id: 1,
+      name: "testName",
+    });
+
+    expect(isEntity(instance)).toBe(true);
+    expect(isEntity("text")).toBe(false);
+    expect(isEntity(1)).toBe(false);
+    expect(isEntity(Symbol())).toBe(false);
+    expect(isEntity({})).toBe(false);
+    expect(isEntity(null)).toBe(false);
+    expect(isEntity(undefined)).toBe(false);
+    expect(isEntity([])).toBe(false);
+
+    const differentInstance = differentEntity.create({
+      id: 1,
+      name: "testName",
+    });
+
+    expect(isDifferentEntity(instance)).toBe(false);
+    expect(isDifferentEntity(differentInstance)).toBe(true);
+    expect(isEntity(differentInstance)).toBe(false);
   });
 });
