@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it, setSystemTime } from "bun:test";
 import { boolean, createEntity, date, entity, number, string } from "../src";
+import { array } from "../src/fields";
 
 describe("Entity", () => {
   beforeAll(() => {
@@ -144,5 +145,21 @@ describe("Entity", () => {
     });
 
     expect(childInstance.get("parent").get("id")).toBe(1);
+  });
+
+  it("should define the entity with array field", () => {
+    const childFactory = createEntity({
+      id: number(),
+      name: string(),
+      tags: array<string>(),
+    });
+
+    const instance = childFactory.create({
+      id: 1,
+      name: "testName",
+      tags: ["tag1", "tag2"],
+    });
+
+    expect(instance.get("tags")).toEqual(["tag1", "tag2"]);
   });
 });
