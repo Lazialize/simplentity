@@ -109,13 +109,13 @@ class EntityFactory<C extends EntityConfig, D extends MethodDefinition> {
  *                                   It receives an object with `set` and `get` functions to manipulate
  *                                   the entity's properties.
  *
- * @returns An object with a `create` method. The `create` method accepts an input object to initialize
- *          the entity's properties and returns an entity instance with the defined fields, methods,
- *          and utility functions (`get`, `set`, `toJSON`).
+ * @returns A tuple containing:
+ *   - An `EntityFactory` instance for creating entities with the specified configuration and methods.
+ *   - A type guard function to check if an object is an entity created by the returned factory.
  *
  * @example
  * ```typescript
- * const userFactory = createEntity({
+ * const [userFactory, isUser] = createEntity({
  *   name: string(),
  *   age: number().default(18),
  *   isActive: boolean().default(true),
@@ -127,6 +127,8 @@ class EntityFactory<C extends EntityConfig, D extends MethodDefinition> {
  * console.log(user.props); // { name: 'John', age: 18, isActive: true }
  * user.incrementAge();
  * console.log(user.props.age); // 19
+ * isUser(user); // true
+ * isUser({}); // false
  * ```
  */
 export function createEntity<C extends EntityConfig, D extends MethodDefinition>(

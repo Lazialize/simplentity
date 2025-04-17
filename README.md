@@ -19,7 +19,7 @@ npm install simplentity
 import {createEntity, number, string, boolean} from 'simplentity';
 
 // Define a user entity
-const userFactory = createEntity({
+const [userFactory, isUser] = createEntity({
   id: string().defaultFn(() => randomUUID()), // randomUUID is a third-party library. Not included.
   name: string(),
   age: number().notRequired(),
@@ -50,6 +50,8 @@ const user = userFactory.create({
 // You can get property values via the get method.
 // Of course, you can get suggestions for the properties of the entity.
 const name = user.get('name'); // 'John Doe'
+
+isUser(user) // true
 ```
 
 ## Todo
