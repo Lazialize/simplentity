@@ -75,6 +75,9 @@ class EntityFactory<C extends EntityConfig, D extends MethodDefinition> {
       assignedProps[key] = value;
     };
     const get = <K extends keyof C>(key: K): EntityConfigTypeResolver<C>[K] => {
+      if (Array.isArray(assignedProps[key])) {
+        return [...assignedProps[key]] as EntityConfigTypeResolver<C>[K];
+      }
       return assignedProps[key];
     };
     // biome-ignore lint/style/useNamingConvention: toJSON is a name to be used in JSON.stringify

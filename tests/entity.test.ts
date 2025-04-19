@@ -14,6 +14,7 @@ describe("Entity", () => {
       isActive: boolean(),
       email: string().notRequired(),
       level: number().default(1),
+      tags: array<string>().default([]),
       createdAt: date().defaultFn(() => new Date()),
     },
     ({ set }) => ({
@@ -110,7 +111,7 @@ describe("Entity", () => {
     });
 
     expect(JSON.stringify(instance)).toBe(
-      `{"id":1,"name":"testName","isActive":true,"level":1,"createdAt":"2024-01-01T00:00:00.000Z"}`,
+      `{"id":1,"name":"testName","isActive":true,"level":1,"tags":[],"createdAt":"2024-01-01T00:00:00.000Z"}`,
     );
     expect(instance.toJSON()).toEqual({
       id: 1,
@@ -118,6 +119,7 @@ describe("Entity", () => {
       isActive: true,
       email: undefined,
       level: 1,
+      tags: [],
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
     });
   });
@@ -160,6 +162,19 @@ describe("Entity", () => {
       tags: ["tag1", "tag2"],
     });
 
+    expect(instance.get("tags")).toEqual(["tag1", "tag2"]);
+  });
+
+  it("should not affect the effect by manipulating a value from the get method", () => {
+    const instance = accountFactory.create({
+      id: 1,
+      name: "testName",
+      isActive: true,
+      tags: ["tag1", "tag2"],
+    });
+
+    const tags = instance.get("tags");
+    tags.push("tag3");
     expect(instance.get("tags")).toEqual(["tag1", "tag2"]);
   });
 });
