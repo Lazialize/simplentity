@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, setSystemTime } from "bun:test";
-import { boolean, date, entity, number, string } from "../src";
+import { boolean, date, entity, number, string } from "../src/index.ts";
 
 describe("Entity", () => {
   beforeAll(() => {
@@ -116,5 +116,18 @@ describe("Entity", () => {
       level: 1,
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
     });
+  });
+
+  it("should not allow mutation via the object returned by toJSON", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+    });
+
+    const json = instance.toJSON();
+    json.name = "hacked";
+
+    expect(instance.get("name")).toBe("testName");
   });
 });
