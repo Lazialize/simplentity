@@ -15,15 +15,15 @@ describe("Entity", () => {
     createdAt: date().defaultFn(() => new Date()),
   }) {
     activate() {
-      this.set("isActive", true);
+      this.props.isActive = true;
     }
 
     disable() {
-      this.set("isActive", false);
+      this.props.isActive = false;
     }
 
     changeName(name: string) {
-      this.set("name", name);
+      this.props.name = name;
     }
   }
 
@@ -36,9 +36,9 @@ describe("Entity", () => {
       level: 1,
     });
 
-    expect(instance.get("id")).toBe(1);
-    expect(instance.get("name")).toBe("testName");
-    expect(instance.get("isActive")).toBe(true);
+    expect(instance.id).toBe(1);
+    expect(instance.name).toBe("testName");
+    expect(instance.isActive).toBe(true);
   });
 
   it("should update the properties", () => {
@@ -51,13 +51,13 @@ describe("Entity", () => {
     });
 
     instance.activate();
-    expect(instance.get("isActive")).toBe(true);
+    expect(instance.isActive).toBe(true);
 
     instance.disable();
-    expect(instance.get("isActive")).toBe(false);
+    expect(instance.isActive).toBe(false);
 
     instance.changeName("newName");
-    expect(instance.get("name")).toBe("newName");
+    expect(instance.name).toBe("newName");
   });
 
   it("should handle not required and default properties", () => {
@@ -67,8 +67,8 @@ describe("Entity", () => {
       isActive: true,
     });
 
-    expect(instance.get("email")).toBeUndefined();
-    expect(instance.get("level")).toBe(1);
+    expect(instance.email).toBeUndefined();
+    expect(instance.level).toBe(1);
   });
 
   it("should override default properties", () => {
@@ -79,7 +79,7 @@ describe("Entity", () => {
       level: 2,
     });
 
-    expect(instance.get("level")).toBe(2);
+    expect(instance.level).toBe(2);
   });
 
   it("should return the default value if the default value is a function", () => {
@@ -94,8 +94,8 @@ describe("Entity", () => {
     const instance1 = new IdIncrement({});
     const instance2 = new IdIncrement({});
 
-    expect(instance1.get("id")).toBe(0);
-    expect(instance2.get("id")).toBe(1);
+    expect(instance1.id).toBe(0);
+    expect(instance2.id).toBe(1);
   });
 
   it("should be able to serialize to JSON", () => {
@@ -150,6 +150,19 @@ describe("Entity", () => {
     expect(() => {
       // @ts-expect-error readonly property
       instance.name = "newName";
+    }).toThrow(TypeError);
+  });
+
+  it("should throw TypeError when accessing props from outside", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+    });
+
+    expect(() => {
+      // @ts-expect-error props is not exposed externally
+      instance.props;
     }).toThrow(TypeError);
   });
 
