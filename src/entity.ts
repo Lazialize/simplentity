@@ -17,6 +17,10 @@ type EntityPropInputResolver<T extends EntityConfig> = {
   [K in keyof Omit<T, RequiredFieldKeys<T>>]?: FieldTypeResolver<T[K]>;
 };
 
+type EntityInstance<Config extends EntityConfig> = Entity<Config> & {
+  readonly [K in keyof Config]: EntityConfigTypeResolver<Config>[K];
+};
+
 abstract class Entity<Config extends EntityConfig> {
   readonly #entityConfig: Config;
   #props: EntityConfigTypeResolver<Config>;
@@ -38,6 +42,29 @@ abstract class Entity<Config extends EntityConfig> {
       },
       {} as Record<string, unknown>,
     ) as EntityConfigTypeResolver<Config>;
+
+    // biome-ignore lint/correctness/noConstructorReturn: Proxy wrapping is intentional for dot notation access
+    return new Proxy(this, {
+      get(target, prop, receiver) {
+        if (Reflect.has(target, prop)) {
+          const value = Reflect.get(target, prop, receiver);
+          if (typeof value === "function") {
+            return value.bind(target);
+          }
+          return value;
+        }
+        if (typeof prop === "string" && prop in entityConfig) {
+          return target.get(prop as keyof Config);
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+      set(target, prop, value, receiver) {
+        if (typeof prop === "string" && prop in entityConfig) {
+          throw new TypeError(`Cannot set property "${prop}" directly. Use a custom method with set() instead.`);
+        }
+        return Reflect.set(target, prop, value, receiver);
+      },
+    });
   }
 
   /**
@@ -75,5 +102,7 @@ export const entity = <Config extends EntityConfig>(fields: Config) => {
     constructor(props: EntityPropInputResolver<Config>) {
       super(props, fields);
     }
-  };
+  } as unknown as new (
+    props: EntityPropInputResolver<Config>,
+  ) => EntityInstance<Config>;
 };

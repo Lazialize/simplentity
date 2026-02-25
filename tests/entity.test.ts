@@ -117,4 +117,67 @@ describe("Entity", () => {
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
     });
   });
+
+  it("should access properties via dot notation", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+      email: "test@test.example",
+      level: 5,
+    });
+
+    expect(instance.id).toBe(1);
+    expect(instance.name).toBe("testName");
+    expect(instance.isActive).toBe(true);
+    expect(instance.email).toBe("test@test.example");
+    expect(instance.level).toBe(5);
+    expect(instance.createdAt).toEqual(new Date("2024-01-01T00:00:00.000Z"));
+  });
+
+  it("should throw TypeError when directly assigning to a field property", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+    });
+
+    expect(() => {
+      // @ts-expect-error readonly property
+      instance.id = 999;
+    }).toThrow(TypeError);
+
+    expect(() => {
+      // @ts-expect-error readonly property
+      instance.name = "newName";
+    }).toThrow(TypeError);
+  });
+
+  it("should reflect updates made via custom methods in dot notation access", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: false,
+    });
+
+    expect(instance.isActive).toBe(false);
+    instance.activate();
+    expect(instance.isActive).toBe(true);
+
+    expect(instance.name).toBe("testName");
+    instance.changeName("newName");
+    expect(instance.name).toBe("newName");
+  });
+
+  it("should access optional and default fields via dot notation", () => {
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+    });
+
+    expect(instance.email).toBeUndefined();
+    expect(instance.level).toBe(1);
+    expect(instance.createdAt).toEqual(new Date("2024-01-01T00:00:00.000Z"));
+  });
 });
