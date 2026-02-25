@@ -17,6 +17,10 @@ type EntityPropInputResolver<T extends EntityConfig> = {
   [K in keyof Omit<T, RequiredFieldKeys<T>>]?: FieldTypeResolver<T[K]>;
 };
 
+type EntityInstance<Config extends EntityConfig> = Omit<Entity<Config>, "props"> & {
+  readonly [K in keyof Config]: EntityConfigTypeResolver<Config>[K];
+};
+
 abstract class Entity<Config extends EntityConfig> {
   readonly #entityConfig: Config;
   #props: EntityConfigTypeResolver<Config>;
@@ -38,26 +42,36 @@ abstract class Entity<Config extends EntityConfig> {
       },
       {} as Record<string, unknown>,
     ) as EntityConfigTypeResolver<Config>;
+
+    // biome-ignore lint/correctness/noConstructorReturn: Proxy wrapping is intentional for dot notation access
+    return new Proxy(this, {
+      get(target, prop, receiver) {
+        if (prop === "props") {
+          throw new TypeError('Cannot access "props" from outside the entity. Use dot notation to read properties.');
+        }
+        if (Reflect.has(target, prop)) {
+          const value = Reflect.get(target, prop, receiver);
+          if (typeof value === "function") {
+            return value.bind(target);
+          }
+          return value;
+        }
+        if (typeof prop === "string" && prop in entityConfig) {
+          return (target.props as Record<string, unknown>)[prop];
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+      set(target, prop, value, receiver) {
+        if (typeof prop === "string" && prop in entityConfig) {
+          throw new TypeError(`Cannot set property "${prop}" directly. Use a custom method instead.`);
+        }
+        return Reflect.set(target, prop, value, receiver);
+      },
+    });
   }
 
-  /**
-   * Get the value of the field by key
-   * @param key
-   */
-  get<K extends keyof Config>(key: K): EntityConfigTypeResolver<Config>[K] {
-    return this.#props[key];
-  }
-
-  /**
-   * Set the value of the field by key
-   *
-   * WARNING: This method should be called only from the methods of the entity.
-   * Its accessor should be protected but TypeScript declaration does not allow protected methods in exported classes.
-   * @param key
-   * @param value
-   */
-  set<K extends keyof Config>(key: K, value: EntityConfigTypeResolver<Config>[K]): void {
-    this.#props[key] = value;
+  protected get props(): EntityConfigTypeResolver<Config> {
+    return this.#props;
   }
 
   // biome-ignore lint/style/useNamingConvention: toJSON is a name to be used in JSON.stringify
@@ -75,5 +89,7 @@ export const entity = <Config extends EntityConfig>(fields: Config) => {
     constructor(props: EntityPropInputResolver<Config>) {
       super(props, fields);
     }
-  };
+  } as unknown as new (
+    props: EntityPropInputResolver<Config>,
+  ) => EntityInstance<Config>;
 };
