@@ -45,8 +45,9 @@ const isActive = user.isActive; // true
 ```
 
 ## Todo
-- [x] Add more built-in types
-- [x] Validation
+- [x] Add more built-in types (enum_, array, object, nullable)
+- [x] Validation (built-in + custom validators)
+- [x] Deserialization (fromJSON)
+- [x] Entity utilities (equals, clone)
 - [ ] Custom field types
-- [ ] Custom field validation
 - [ ] Custom field serialization
