@@ -161,7 +161,6 @@ describe("Entity", () => {
     });
 
     expect(() => {
-      // @ts-expect-error props is not exposed externally
       instance.props;
     }).toThrow(TypeError);
   });
