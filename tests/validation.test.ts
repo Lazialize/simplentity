@@ -90,6 +90,64 @@ describe("Validation", () => {
     });
   });
 
+  describe("Props assignment validation", () => {
+    it("should validate when setting props via custom method", () => {
+      class Validated extends entity({
+        name: string().minLength(3),
+      }) {
+        changeName(name: string) {
+          this.props.name = name;
+        }
+      }
+
+      const instance = new Validated({ name: "valid" });
+      expect(() => instance.changeName("ab")).toThrow(ValidationError);
+      expect(instance.name).toBe("valid"); // unchanged after failed validation
+    });
+
+    it("should allow valid props assignment", () => {
+      class Validated extends entity({
+        name: string().minLength(3),
+      }) {
+        changeName(name: string) {
+          this.props.name = name;
+        }
+      }
+
+      const instance = new Validated({ name: "valid" });
+      instance.changeName("also valid");
+      expect(instance.name).toBe("also valid");
+    });
+
+    it("should skip validation for undefined on notRequired fields", () => {
+      class Validated extends entity({
+        email: string().notRequired().minLength(3),
+      }) {
+        clearEmail() {
+          this.props.email = undefined;
+        }
+      }
+
+      const instance = new Validated({ email: "test@test.example" });
+      expect(() => instance.clearEmail()).not.toThrow();
+      expect(instance.email).toBeUndefined();
+    });
+
+    it("should validate runtime types on props assignment", () => {
+      class Validated extends entity({
+        name: string(),
+      }) {
+        setNameBad() {
+          // @ts-expect-error testing runtime check
+          this.props.name = 123;
+        }
+      }
+
+      const instance = new Validated({ name: "valid" });
+      expect(() => instance.setNameBad()).toThrow(ValidationError);
+    });
+  });
+
   describe("Runtime type checks", () => {
     it("should reject wrong types at runtime", () => {
       class T extends entity({ name: string() }) {}

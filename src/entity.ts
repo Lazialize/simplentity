@@ -27,6 +27,7 @@ type EntityInstance<Config extends EntityConfig> = Omit<Entity<Config>, "props">
 abstract class Entity<Config extends EntityConfig> {
   readonly #entityConfig: Config;
   #props: EntityConfigTypeResolver<Config>;
+  #propsProxy: EntityConfigTypeResolver<Config>;
 
   protected constructor(props: EntityPropInputResolver<Config>, entityConfig: Config) {
     this.#entityConfig = entityConfig;
@@ -58,6 +59,23 @@ abstract class Entity<Config extends EntityConfig> {
       }
     }
 
+    this.#propsProxy = new Proxy(this.#props as Record<string, unknown>, {
+      set: (target, prop, value) => {
+        if (typeof prop === "string" && prop in this.#entityConfig) {
+          const field = this.#entityConfig[prop];
+          if (!(value === undefined && field.getConfig().notRequired)) {
+            for (const validator of field.getValidators()) {
+              if (!validator.fn(value)) {
+                throw new ValidationError(String(prop), value, validator.rule, validator.message);
+              }
+            }
+          }
+        }
+        target[prop as string] = value;
+        return true;
+      },
+    }) as EntityConfigTypeResolver<Config>;
+
     // biome-ignore lint/correctness/noConstructorReturn: Proxy wrapping is intentional for dot notation access
     return new Proxy(this, {
       get(target, prop, receiver) {
@@ -86,7 +104,7 @@ abstract class Entity<Config extends EntityConfig> {
   }
 
   protected get props(): EntityConfigTypeResolver<Config> {
-    return this.#props;
+    return this.#propsProxy;
   }
 
   // biome-ignore lint/style/useNamingConvention: toJSON is a name to be used in JSON.stringify
