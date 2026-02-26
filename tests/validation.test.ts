@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { ValidationError, boolean, date, entity, number, string } from "../src";
+import { ValidationError, boolean, date, entity, enum_, number, string } from "../src";
 
 describe("Validation", () => {
   describe("ValidationError", () => {
@@ -145,6 +145,38 @@ describe("Validation", () => {
 
       const instance = new Validated({ name: "valid" });
       expect(() => instance.setNameBad()).toThrow(ValidationError);
+    });
+  });
+
+  describe("EnumField", () => {
+    it("should accept valid enum values", () => {
+      class T extends entity({ role: enum_(["admin", "user", "guest"]) }) {}
+      const instance = new T({ role: "admin" });
+      expect(instance.role).toBe("admin");
+    });
+
+    it("should reject invalid enum values", () => {
+      class T extends entity({ role: enum_(["admin", "user", "guest"]) }) {}
+      // @ts-expect-error testing invalid value
+      expect(() => new T({ role: "superadmin" })).toThrow(ValidationError);
+    });
+
+    it("should reject non-string values", () => {
+      class T extends entity({ role: enum_(["admin", "user"]) }) {}
+      // @ts-expect-error testing runtime type check
+      expect(() => new T({ role: 123 })).toThrow(ValidationError);
+    });
+
+    it("should work with notRequired", () => {
+      class T extends entity({ role: enum_(["admin", "user"]).notRequired() }) {}
+      const instance = new T({});
+      expect(instance.role).toBeUndefined();
+    });
+
+    it("should work with default", () => {
+      class T extends entity({ role: enum_(["admin", "user"]).default("user") }) {}
+      const instance = new T({});
+      expect(instance.role).toBe("user");
     });
   });
 
