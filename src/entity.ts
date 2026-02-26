@@ -1,3 +1,4 @@
+import { ValidationError } from "./errors.ts";
 import type { Field } from "./field.ts";
 
 type EntityConfig = { [key: string]: Field<unknown> };
@@ -23,9 +24,20 @@ type EntityInstance<Config extends EntityConfig> = Omit<Entity<Config>, "props">
   props: EntityConfigTypeResolver<Config>;
 };
 
+const valuesEqual = (valA: unknown, valB: unknown): boolean => {
+  if (valA instanceof Date && valB instanceof Date) {
+    return valA.getTime() === valB.getTime();
+  }
+  if (typeof valA === "object" && valA !== null) {
+    return JSON.stringify(valA) === JSON.stringify(valB);
+  }
+  return valA === valB;
+};
+
 abstract class Entity<Config extends EntityConfig> {
   readonly #entityConfig: Config;
   #props: EntityConfigTypeResolver<Config>;
+  #propsProxy: EntityConfigTypeResolver<Config>;
 
   protected constructor(props: EntityPropInputResolver<Config>, entityConfig: Config) {
     this.#entityConfig = entityConfig;
@@ -33,7 +45,8 @@ abstract class Entity<Config extends EntityConfig> {
 
     this.#props = Object.entries(entityConfig).reduce(
       (acc, [key, field]) => {
-        const value = props[key as keyof typeof props] ?? field.getDefaultValue();
+        const raw = props[key as keyof typeof props];
+        const value = raw !== undefined ? raw : field.getDefaultValue();
 
         if (field.getConfig().hasDefault && value === undefined) {
           (acc as Record<string, unknown>)[key] = field.getDefaultValue();
@@ -44,6 +57,35 @@ abstract class Entity<Config extends EntityConfig> {
       },
       {} as Record<string, unknown>,
     ) as EntityConfigTypeResolver<Config>;
+
+    for (const [key, field] of Object.entries(entityConfig)) {
+      const value = (this.#props as Record<string, unknown>)[key];
+      if (value === undefined && field.getConfig().notRequired) {
+        continue;
+      }
+      for (const validator of field.getValidators()) {
+        if (!validator.fn(value)) {
+          throw new ValidationError(key, value, validator.rule, validator.message);
+        }
+      }
+    }
+
+    this.#propsProxy = new Proxy(this.#props as Record<string, unknown>, {
+      set: (target, prop, value) => {
+        if (typeof prop === "string" && prop in this.#entityConfig) {
+          const field = this.#entityConfig[prop];
+          if (!(value === undefined && field.getConfig().notRequired)) {
+            for (const validator of field.getValidators()) {
+              if (!validator.fn(value)) {
+                throw new ValidationError(String(prop), value, validator.rule, validator.message);
+              }
+            }
+          }
+        }
+        target[prop as string] = value;
+        return true;
+      },
+    }) as EntityConfigTypeResolver<Config>;
 
     // biome-ignore lint/correctness/noConstructorReturn: Proxy wrapping is intentional for dot notation access
     return new Proxy(this, {
@@ -73,12 +115,34 @@ abstract class Entity<Config extends EntityConfig> {
   }
 
   protected get props(): EntityConfigTypeResolver<Config> {
-    return this.#props;
+    return this.#propsProxy;
   }
 
   // biome-ignore lint/style/useNamingConvention: toJSON is a name to be used in JSON.stringify
-  toJSON(): EntityConfigTypeResolver<Config> {
-    return this.#props;
+  toJSON(): Partial<EntityConfigTypeResolver<Config>> {
+    return Object.fromEntries(
+      Object.entries(this.#props as Record<string, unknown>).filter(([, v]) => v !== undefined),
+    ) as Partial<EntityConfigTypeResolver<Config>>;
+  }
+
+  equals(other: EntityInstance<Config>): boolean {
+    const a = this.toJSON() as Record<string, unknown>;
+    const b = (other as unknown as Entity<Config>).toJSON() as Record<string, unknown>;
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+    if (keysA.length !== keysB.length) {
+      return false;
+    }
+    return keysA.every((key) => valuesEqual(a[key], b[key]));
+  }
+
+  clone(): EntityInstance<Config> {
+    const json = JSON.parse(JSON.stringify(this.toJSON())) as Record<string, unknown>;
+    const entityWithFromJson = this.constructor as unknown as {
+      // biome-ignore lint/style/useNamingConvention: fromJSON matches toJSON convention
+      fromJSON(json: Record<string, unknown>): EntityInstance<Config>;
+    };
+    return entityWithFromJson.fromJSON(json);
   }
 }
 
@@ -87,11 +151,28 @@ abstract class Entity<Config extends EntityConfig> {
  * @param fields
  */
 export const entity = <Config extends EntityConfig>(fields: Config) => {
-  return class extends Entity<typeof fields> {
+  class EntityClass extends Entity<typeof fields> {
     constructor(props: EntityPropInputResolver<Config>) {
       super(props, fields);
     }
-  } as unknown as new (
+
+    // biome-ignore lint/style/useNamingConvention: fromJSON matches toJSON convention
+    static fromJSON(json: Record<string, unknown>): EntityInstance<Config> {
+      const converted: Record<string, unknown> = {};
+      for (const [key, field] of Object.entries(fields)) {
+        if (key in json) {
+          converted[key] = field.fromJSON(json[key]);
+        }
+      }
+      // biome-ignore lint/complexity/noThisInStatic: `this` enables subclass inheritance
+      return new this(converted as EntityPropInputResolver<Config>) as unknown as EntityInstance<Config>;
+    }
+  }
+
+  return EntityClass as unknown as (new (
     props: EntityPropInputResolver<Config>,
-  ) => EntityInstance<Config>;
+  ) => EntityInstance<Config>) & {
+    // biome-ignore lint/style/useNamingConvention: fromJSON matches toJSON convention
+    fromJSON(json: Record<string, unknown>): EntityInstance<Config>;
+  };
 };

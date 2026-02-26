@@ -1,4 +1,5 @@
 import { entity } from "./entity.ts";
-import { boolean, date, number, string } from "./fields/index.ts";
+import { ValidationError } from "./errors.ts";
+import { array, boolean, date, enum_, nullable, number, object, string } from "./fields/index.ts";
 
-export { entity, string, number, boolean, date };
+export { entity, string, number, boolean, date, enum_, array, object, nullable, ValidationError };
