@@ -85,4 +85,9 @@ export abstract class Field<T> implements ConfigurableFieldBase<T> {
   getValidators(): Validator[] {
     return this.validators;
   }
+
+  // biome-ignore lint/style/useNamingConvention: fromJSON matches toJSON convention
+  fromJSON(value: unknown): T {
+    return value as T;
+  }
 }

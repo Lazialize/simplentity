@@ -39,6 +39,13 @@ class ArrayField<T> extends Field<T[]> {
     });
     return this;
   }
+
+  override fromJSON(value: unknown): T[] {
+    if (!Array.isArray(value)) {
+      return value as T[];
+    }
+    return value.map((v) => this.#innerField.fromJSON(v));
+  }
 }
 
 export const array = <T>(innerField: Field<T>) => {

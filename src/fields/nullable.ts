@@ -15,6 +15,13 @@ class NullableField<T> extends Field<T | null> {
       });
     }
   }
+
+  override fromJSON(value: unknown): T | null {
+    if (value === null) {
+      return null;
+    }
+    return this.#innerField.fromJSON(value);
+  }
 }
 
 export const nullable = <T>(innerField: Field<T>) => {

@@ -27,6 +27,16 @@ class DateField extends Field<Date> {
     });
     return this;
   }
+
+  override fromJSON(value: unknown): Date {
+    if (typeof value === "string") {
+      return new Date(value);
+    }
+    if (value instanceof Date) {
+      return value;
+    }
+    return value as Date;
+  }
 }
 
 /**

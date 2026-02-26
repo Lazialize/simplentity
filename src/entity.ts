@@ -121,11 +121,28 @@ abstract class Entity<Config extends EntityConfig> {
  * @param fields
  */
 export const entity = <Config extends EntityConfig>(fields: Config) => {
-  return class extends Entity<typeof fields> {
+  class EntityClass extends Entity<typeof fields> {
     constructor(props: EntityPropInputResolver<Config>) {
       super(props, fields);
     }
-  } as unknown as new (
+
+    // biome-ignore lint/style/useNamingConvention: fromJSON matches toJSON convention
+    static fromJSON(json: Record<string, unknown>): EntityInstance<Config> {
+      const converted: Record<string, unknown> = {};
+      for (const [key, field] of Object.entries(fields)) {
+        if (key in json) {
+          converted[key] = field.fromJSON(json[key]);
+        }
+      }
+      // biome-ignore lint/complexity/noThisInStatic: `this` enables subclass inheritance
+      return new this(converted as EntityPropInputResolver<Config>) as unknown as EntityInstance<Config>;
+    }
+  }
+
+  return EntityClass as unknown as (new (
     props: EntityPropInputResolver<Config>,
-  ) => EntityInstance<Config>;
+  ) => EntityInstance<Config>) & {
+    // biome-ignore lint/style/useNamingConvention: fromJSON matches toJSON convention
+    fromJSON(json: Record<string, unknown>): EntityInstance<Config>;
+  };
 };

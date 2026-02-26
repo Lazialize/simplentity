@@ -36,6 +36,19 @@ class ObjectField<T extends ObjectSchema> extends Field<ResolveObjectSchema<T>> 
       message: "object schema validation failed",
     });
   }
+
+  override fromJSON(value: unknown): ResolveObjectSchema<T> {
+    if (typeof value !== "object" || value === null) {
+      return value as ResolveObjectSchema<T>;
+    }
+    const result = { ...value } as Record<string, unknown>;
+    for (const [key, field] of Object.entries(this.#schema)) {
+      if (key in result) {
+        result[key] = field.fromJSON(result[key]);
+      }
+    }
+    return result as ResolveObjectSchema<T>;
+  }
 }
 
 export const object = <T extends ObjectSchema>(schema: T) => {
