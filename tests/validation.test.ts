@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { ValidationError, boolean, date, entity, enum_, number, string } from "../src";
+import { ValidationError, array, boolean, date, entity, enum_, number, string } from "../src";
 
 describe("Validation", () => {
   describe("ValidationError", () => {
@@ -177,6 +177,44 @@ describe("Validation", () => {
       class T extends entity({ role: enum_(["admin", "user"]).default("user") }) {}
       const instance = new T({});
       expect(instance.role).toBe("user");
+    });
+  });
+
+  describe("ArrayField", () => {
+    it("should accept valid arrays", () => {
+      class T extends entity({ tags: array(string()) }) {}
+      const instance = new T({ tags: ["a", "b"] });
+      expect(instance.tags).toEqual(["a", "b"]);
+    });
+
+    it("should reject non-array values", () => {
+      class T extends entity({ tags: array(string()) }) {}
+      // @ts-expect-error testing runtime type check
+      expect(() => new T({ tags: "not an array" })).toThrow(ValidationError);
+    });
+
+    it("should validate each element against inner field", () => {
+      class T extends entity({ tags: array(string().minLength(2)) }) {}
+      expect(() => new T({ tags: ["ab", "a"] })).toThrow(ValidationError);
+      expect(() => new T({ tags: ["ab", "cd"] })).not.toThrow();
+    });
+
+    it("should validate minItems", () => {
+      class T extends entity({ tags: array(string()).minItems(2) }) {}
+      expect(() => new T({ tags: ["a"] })).toThrow(ValidationError);
+      expect(() => new T({ tags: ["a", "b"] })).not.toThrow();
+    });
+
+    it("should validate maxItems", () => {
+      class T extends entity({ tags: array(string()).maxItems(2) }) {}
+      expect(() => new T({ tags: ["a", "b", "c"] })).toThrow(ValidationError);
+      expect(() => new T({ tags: ["a", "b"] })).not.toThrow();
+    });
+
+    it("should work with notRequired", () => {
+      class T extends entity({ tags: array(string()).notRequired() }) {}
+      const instance = new T({});
+      expect(instance.tags).toBeUndefined();
     });
   });
 
