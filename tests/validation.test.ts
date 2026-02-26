@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { ValidationError, array, boolean, date, entity, enum_, number, object, string } from "../src";
+import { ValidationError, array, boolean, date, entity, enum_, nullable, number, object, string } from "../src";
 
 describe("Validation", () => {
   describe("ValidationError", () => {
@@ -241,6 +241,41 @@ describe("Validation", () => {
       class T extends entity({ address: object({ street: string() }).notRequired() }) {}
       const instance = new T({});
       expect(instance.address).toBeUndefined();
+    });
+  });
+
+  describe("NullableField", () => {
+    it("should accept null values", () => {
+      class T extends entity({ bio: nullable(string()) }) {}
+      const instance = new T({ bio: null });
+      expect(instance.bio).toBeNull();
+    });
+
+    it("should accept valid non-null values", () => {
+      class T extends entity({ bio: nullable(string()) }) {}
+      const instance = new T({ bio: "hello" });
+      expect(instance.bio).toBe("hello");
+    });
+
+    it("should validate non-null values against inner field", () => {
+      class T extends entity({ bio: nullable(string().minLength(3)) }) {}
+      expect(() => new T({ bio: "ab" })).toThrow(ValidationError);
+      expect(() => new T({ bio: null })).not.toThrow();
+      expect(() => new T({ bio: "abc" })).not.toThrow();
+    });
+
+    it("should work with notRequired", () => {
+      class T extends entity({ bio: nullable(string()).notRequired() }) {}
+      const withNull = new T({ bio: null });
+      expect(withNull.bio).toBeNull();
+      const withUndefined = new T({});
+      expect(withUndefined.bio).toBeUndefined();
+    });
+
+    it("should reject wrong types that are not null", () => {
+      class T extends entity({ bio: nullable(string()) }) {}
+      // @ts-expect-error testing runtime type check
+      expect(() => new T({ bio: 123 })).toThrow(ValidationError);
     });
   });
 

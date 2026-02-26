@@ -35,7 +35,8 @@ abstract class Entity<Config extends EntityConfig> {
 
     this.#props = Object.entries(entityConfig).reduce(
       (acc, [key, field]) => {
-        const value = props[key as keyof typeof props] ?? field.getDefaultValue();
+        const raw = props[key as keyof typeof props];
+        const value = raw !== undefined ? raw : field.getDefaultValue();
 
         if (field.getConfig().hasDefault && value === undefined) {
           (acc as Record<string, unknown>)[key] = field.getDefaultValue();
