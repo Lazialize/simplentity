@@ -24,6 +24,16 @@ type EntityInstance<Config extends EntityConfig> = Omit<Entity<Config>, "props">
   props: EntityConfigTypeResolver<Config>;
 };
 
+const valuesEqual = (valA: unknown, valB: unknown): boolean => {
+  if (valA instanceof Date && valB instanceof Date) {
+    return valA.getTime() === valB.getTime();
+  }
+  if (typeof valA === "object" && valA !== null) {
+    return JSON.stringify(valA) === JSON.stringify(valB);
+  }
+  return valA === valB;
+};
+
 abstract class Entity<Config extends EntityConfig> {
   readonly #entityConfig: Config;
   #props: EntityConfigTypeResolver<Config>;
@@ -113,6 +123,26 @@ abstract class Entity<Config extends EntityConfig> {
     return Object.fromEntries(
       Object.entries(this.#props as Record<string, unknown>).filter(([, v]) => v !== undefined),
     ) as Partial<EntityConfigTypeResolver<Config>>;
+  }
+
+  equals(other: EntityInstance<Config>): boolean {
+    const a = this.toJSON() as Record<string, unknown>;
+    const b = (other as unknown as Entity<Config>).toJSON() as Record<string, unknown>;
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+    if (keysA.length !== keysB.length) {
+      return false;
+    }
+    return keysA.every((key) => valuesEqual(a[key], b[key]));
+  }
+
+  clone(): EntityInstance<Config> {
+    const json = JSON.parse(JSON.stringify(this.toJSON())) as Record<string, unknown>;
+    const entityWithFromJson = this.constructor as unknown as {
+      // biome-ignore lint/style/useNamingConvention: fromJSON matches toJSON convention
+      fromJSON(json: Record<string, unknown>): EntityInstance<Config>;
+    };
+    return entityWithFromJson.fromJSON(json);
   }
 }
 

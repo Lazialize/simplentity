@@ -95,3 +95,97 @@ describe("fromJSON", () => {
     expect((account as unknown as Account).greet()).toBe("Hello, test");
   });
 });
+
+describe("equals", () => {
+  class Account extends entity({
+    id: number(),
+    name: string(),
+    isActive: boolean(),
+    email: string().notRequired(),
+    level: number().default(1),
+    createdAt: date().defaultFn(() => new Date()),
+  }) {}
+
+  it("should return true for equal entities", () => {
+    const a = new Account({ id: 1, name: "test", isActive: true });
+    const b = new Account({ id: 1, name: "test", isActive: true });
+    expect(a.equals(b)).toBe(true);
+  });
+
+  it("should return false for different entities", () => {
+    const a = new Account({ id: 1, name: "test", isActive: true });
+    const b = new Account({ id: 2, name: "other", isActive: false });
+    expect(a.equals(b)).toBe(false);
+  });
+
+  it("should handle optional fields correctly", () => {
+    const a = new Account({ id: 1, name: "test", isActive: true, email: "a@b.com" });
+    const b = new Account({ id: 1, name: "test", isActive: true });
+    expect(a.equals(b)).toBe(false);
+  });
+
+  it("should compare Date values by time", () => {
+    const a = new Account({ id: 1, name: "test", isActive: true });
+    const b = new Account({ id: 1, name: "test", isActive: true });
+    // Both have same defaultFn date (frozen system time)
+    expect(a.equals(b)).toBe(true);
+  });
+
+  it("should compare array and object fields deeply", () => {
+    class T extends entity({
+      tags: array(string()),
+      meta: object({ key: string() }),
+    }) {}
+
+    const a = new T({ tags: ["a", "b"], meta: { key: "v" } });
+    const b = new T({ tags: ["a", "b"], meta: { key: "v" } });
+    const c = new T({ tags: ["a", "c"], meta: { key: "v" } });
+
+    expect(a.equals(b)).toBe(true);
+    expect(a.equals(c)).toBe(false);
+  });
+});
+
+describe("clone", () => {
+  class Account extends entity({
+    id: number(),
+    name: string(),
+    isActive: boolean(),
+    level: number().default(1),
+    createdAt: date().defaultFn(() => new Date()),
+  }) {
+    changeName(name: string) {
+      this.props.name = name;
+    }
+  }
+
+  it("should create an equal copy", () => {
+    const original = new Account({ id: 1, name: "test", isActive: true });
+    const copy = original.clone();
+    expect(original.equals(copy)).toBe(true);
+  });
+
+  it("should create an independent copy", () => {
+    const original = new Account({ id: 1, name: "test", isActive: true });
+    const copy = original.clone();
+    (copy as unknown as Account).changeName("changed");
+    expect(original.name).toBe("test");
+    expect(copy.name).toBe("changed");
+  });
+
+  it("should deep copy arrays and objects", () => {
+    class T extends entity({
+      tags: array(string()),
+    }) {
+      addTag(tag: string) {
+        this.props.tags = [...this.props.tags, tag];
+      }
+    }
+
+    const original = new T({ tags: ["a"] });
+    const copy = original.clone();
+    (copy as unknown as T).addTag("b");
+    expect(original.tags).toEqual(["a"]);
+    expect(copy.tags).toEqual(["a", "b"]);
+  });
+});
