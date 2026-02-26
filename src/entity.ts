@@ -19,6 +19,8 @@ type EntityPropInputResolver<T extends EntityConfig> = {
 
 type EntityInstance<Config extends EntityConfig> = Omit<Entity<Config>, "props"> & {
   readonly [K in keyof Config]: EntityConfigTypeResolver<Config>[K];
+} & {
+  props: EntityConfigTypeResolver<Config>;
 };
 
 abstract class Entity<Config extends EntityConfig> {
