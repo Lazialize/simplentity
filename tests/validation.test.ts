@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { ValidationError, array, boolean, date, entity, enum_, number, string } from "../src";
+import { ValidationError, array, boolean, date, entity, enum_, number, object, string } from "../src";
 
 describe("Validation", () => {
   describe("ValidationError", () => {
@@ -215,6 +215,32 @@ describe("Validation", () => {
       class T extends entity({ tags: array(string()).notRequired() }) {}
       const instance = new T({});
       expect(instance.tags).toBeUndefined();
+    });
+  });
+
+  describe("ObjectField", () => {
+    it("should accept valid objects", () => {
+      class T extends entity({ address: object({ street: string(), city: string() }) }) {}
+      const instance = new T({ address: { street: "123 Main", city: "NYC" } });
+      expect(instance.address).toEqual({ street: "123 Main", city: "NYC" });
+    });
+
+    it("should reject non-object values", () => {
+      class T extends entity({ address: object({ street: string() }) }) {}
+      // @ts-expect-error testing runtime type check
+      expect(() => new T({ address: "not an object" })).toThrow(ValidationError);
+    });
+
+    it("should validate nested fields", () => {
+      class T extends entity({ address: object({ zip: string().minLength(5) }) }) {}
+      expect(() => new T({ address: { zip: "123" } })).toThrow(ValidationError);
+      expect(() => new T({ address: { zip: "12345" } })).not.toThrow();
+    });
+
+    it("should work with notRequired", () => {
+      class T extends entity({ address: object({ street: string() }).notRequired() }) {}
+      const instance = new T({});
+      expect(instance.address).toBeUndefined();
     });
   });
 
