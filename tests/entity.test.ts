@@ -195,4 +195,57 @@ describe("Entity", () => {
     expect(instance.level).toBe(1);
     expect(instance.createdAt).toEqual(new Date("2024-01-01T00:00:00.000Z"));
   });
+
+  it("should override defaultFn value when explicitly provided", () => {
+    const fixedDate = new Date("2025-06-15T00:00:00.000Z");
+    const instance = new Account({
+      id: 1,
+      name: "testName",
+      isActive: true,
+      createdAt: fixedDate,
+    });
+
+    expect(instance.createdAt).toEqual(fixedDate);
+  });
+
+  it("should handle notRequired with default combination", () => {
+    class WithOptionalDefault extends entity({
+      name: string(),
+      nickname: string().notRequired().default("anonymous"),
+    }) {}
+
+    const withoutNickname = new WithOptionalDefault({ name: "test" });
+    expect(withoutNickname.nickname).toBe("anonymous");
+
+    const withNickname = new WithOptionalDefault({ name: "test", nickname: "nick" });
+    expect(withNickname.nickname).toBe("nick");
+  });
+
+  it("should isolate entity config between different entity classes", () => {
+    class EntityA extends entity({ x: number() }) {}
+    class EntityB extends entity({ y: string() }) {}
+
+    const a = new EntityA({ x: 42 });
+    const b = new EntityB({ y: "hello" });
+
+    expect(a.x).toBe(42);
+    expect(b.y).toBe("hello");
+    expect("y" in a).toBe(false);
+    expect("x" in b).toBe(false);
+  });
+
+  it("should create individual field types correctly", () => {
+    class AllFields extends entity({
+      s: string(),
+      n: number(),
+      b: boolean(),
+      d: date(),
+    }) {}
+
+    const instance = new AllFields({ s: "hello", n: 42, b: true, d: new Date("2024-01-01") });
+    expect(instance.s).toBe("hello");
+    expect(instance.n).toBe(42);
+    expect(instance.b).toBe(true);
+    expect(instance.d).toEqual(new Date("2024-01-01"));
+  });
 });
