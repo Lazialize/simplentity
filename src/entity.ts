@@ -1,3 +1,4 @@
+import { ValidationError } from "./errors.ts";
 import type { Field } from "./field.ts";
 
 type EntityConfig = { [key: string]: Field<unknown> };
@@ -44,6 +45,18 @@ abstract class Entity<Config extends EntityConfig> {
       },
       {} as Record<string, unknown>,
     ) as EntityConfigTypeResolver<Config>;
+
+    for (const [key, field] of Object.entries(entityConfig)) {
+      const value = (this.#props as Record<string, unknown>)[key];
+      if (value === undefined && field.getConfig().notRequired) {
+        continue;
+      }
+      for (const validator of field.getValidators()) {
+        if (!validator.fn(value)) {
+          throw new ValidationError(key, value, validator.rule, validator.message);
+        }
+      }
+    }
 
     // biome-ignore lint/correctness/noConstructorReturn: Proxy wrapping is intentional for dot notation access
     return new Proxy(this, {

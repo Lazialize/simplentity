@@ -27,10 +27,17 @@ type HasDefault<T extends ConfigurableFieldBase<unknown>> = T & {
   };
 };
 
+export type Validator = {
+  rule: string;
+  fn: (value: unknown) => boolean;
+  message: string;
+};
+
 export abstract class Field<T> implements ConfigurableFieldBase<T> {
   declare _: FieldConfig<T>;
 
   config: FieldRuntimeConfig<T>;
+  validators: Validator[];
 
   constructor() {
     this.config = {
@@ -38,6 +45,7 @@ export abstract class Field<T> implements ConfigurableFieldBase<T> {
       hasDefault: false,
       default: undefined,
     };
+    this.validators = [];
   }
 
   notRequired(): NotRequired<this> {
@@ -63,5 +71,18 @@ export abstract class Field<T> implements ConfigurableFieldBase<T> {
 
   getDefaultValue(): T | undefined {
     return this.config.default ?? this.config.defaultFn?.();
+  }
+
+  validate(fn: (value: unknown) => boolean, message?: string): this {
+    this.validators.push({
+      rule: "custom",
+      fn,
+      message: message ?? "validation failed",
+    });
+    return this;
+  }
+
+  getValidators(): Validator[] {
+    return this.validators;
   }
 }
