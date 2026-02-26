@@ -108,14 +108,17 @@ describe("Entity", () => {
     expect(JSON.stringify(instance)).toBe(
       `{"id":1,"name":"testName","isActive":true,"level":1,"createdAt":"2024-01-01T00:00:00.000Z"}`,
     );
-    expect(instance.toJSON()).toEqual({
+    // toJSON should exclude undefined values (email is notRequired and not provided)
+    const json = instance.toJSON();
+    expect(json).toEqual({
       id: 1,
       name: "testName",
       isActive: true,
-      email: undefined,
       level: 1,
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
     });
+    // Verify that undefined keys are actually excluded, not just set to undefined
+    expect("email" in json).toBe(false);
   });
 
   it("should access properties via dot notation", () => {

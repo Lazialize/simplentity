@@ -77,8 +77,10 @@ abstract class Entity<Config extends EntityConfig> {
   }
 
   // biome-ignore lint/style/useNamingConvention: toJSON is a name to be used in JSON.stringify
-  toJSON(): EntityConfigTypeResolver<Config> {
-    return this.#props;
+  toJSON(): Partial<EntityConfigTypeResolver<Config>> {
+    return Object.fromEntries(
+      Object.entries(this.#props as Record<string, unknown>).filter(([, v]) => v !== undefined),
+    ) as Partial<EntityConfigTypeResolver<Config>>;
   }
 }
 
