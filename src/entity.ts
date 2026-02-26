@@ -34,16 +34,6 @@ const valuesEqual = (valA: unknown, valB: unknown): boolean => {
   return valA === valB;
 };
 
-const valuesEqual = (valA: unknown, valB: unknown): boolean => {
-  if (valA instanceof Date && valB instanceof Date) {
-    return valA.getTime() === valB.getTime();
-  }
-  if (typeof valA === "object" && valA !== null) {
-    return JSON.stringify(valA) === JSON.stringify(valB);
-  }
-  return valA === valB;
-};
-
 abstract class Entity<Config extends EntityConfig> {
   readonly #entityConfig: Config;
   #props: EntityConfigTypeResolver<Config>;
